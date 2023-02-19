@@ -1,11 +1,22 @@
-function Link(props) {
+let state = {
+    hash: window.location.hash,
+    inputValue: "",
+  };
+  
+  function setState(newState) {
+    state = { ...state, ...newState };
+    render();
+  }
+  
+  function Link(props) {
     const a = document.createElement("a");
     a.href = props.href;
     a.textContent = props.label;
     a.onclick = function (event) {
       event.preventDefault();
-      history.pushState(null, "", event.target.href);
-      render();
+      const url = new URL(event.target.href);
+      setState({ hash: url.hash });
+      history.pushState(null, "", url.hash);
     };
     return a;
   }
@@ -28,17 +39,27 @@ function Link(props) {
     p.textContent = "Welcome to Home Page";
   
     const textPreview = document.createElement("p");
+    textPreview.textContent = state.inputValue;
   
     const input = document.createElement("input");
+    input.id = "input";
+    input.value = state.inputValue;
     input.placeholder = "enter your name";
     input.oninput = function (event) {
-      textPreview.textContent = event.target.value;
+      setState({ inputValue: event.target.value });
+    };
+  
+    const buttonClear = document.createElement("button");
+    buttonClear.textContent = "Clear";
+    buttonClear.onclick = function () {
+      setState({ inputValue: "" });
     };
   
     const div = document.createElement("div");
     div.append(navbar);
     div.append(p);
     div.append(input);
+    div.append(buttonClear);
     div.append(textPreview);
   
     return div;
@@ -60,9 +81,9 @@ function Link(props) {
     const homePage = HomePage();
     const aboutPage = AboutPage();
   
-    if (window.location.hash == "#home") {
+    if (state.hash == "#home") {
       return homePage;
-    } else if (window.location.hash == "#about") {
+    } else if (state.hash == "#about") {
       return aboutPage;
     } else {
       return homePage;
@@ -70,10 +91,21 @@ function Link(props) {
   }
   
   function render() {
+    const focusedElementId = document.activeElement.id;
+    const focusedElementSelectionStart = document.activeElement.selectionStart;
+    const focusedElementSelectionEnd = document.activeElement.selectionEnd;
+  
     const root = document.getElementById("root");
     const app = App();
     root.innerHTML = "";
     root.appendChild(app);
+  
+    if (focusedElementId) {
+      const focusedElement = document.getElementById(focusedElementId);
+      focusedElement.focus();
+      focusedElement.selectionStart = focusedElementSelectionStart;
+      focusedElement.selectionEnd = focusedElementSelectionEnd;
+    }
   }
   
   render();
